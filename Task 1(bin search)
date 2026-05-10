@@ -1,0 +1,95 @@
+// Любевич Нікіта 101 група (4 варіант) 
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+typedef struct {
+    char name[100];
+    char address[100];
+    char phone[20];
+} Client;
+
+int compare_clients(const void *a, const void *b) {
+    return strcmp(((Client *)a)->address, ((Client *)b)->address);
+}
+
+int first_occurrence(Client *arr, int low, int high, char* target, int n) {
+    if (high >= low) {
+        int mid = low + (high - low) / 2;
+        if ((mid == 0 || strcmp(arr[mid - 1].address, target) < 0) && strcmp(arr[mid].address, target) == 0) {
+            return mid;
+        } else if (strcmp(target, arr[mid].address) > 0) {
+            return first_occurrence(arr, mid + 1, high, target, n);
+        } else {
+            return first_occurrence(arr, low, mid - 1, target, n);
+        }
+    }
+    return -1;
+}
+
+int last_occurrence(Client *arr, int low, int high, char* target, int n) {
+    if (high >= low) {
+        int mid = low + (high - low) / 2;
+        if ((mid == n - 1 || strcmp(arr[mid + 1].address, target) > 0) && strcmp(arr[mid].address, target) == 0) {
+            return mid;
+        } else if (strcmp(target, arr[mid].address) < 0) {
+            return last_occurrence(arr, low, mid - 1, target, n);
+        } else {
+            return last_occurrence(arr, mid + 1, high, target, n);
+        }
+    }
+    return -1;
+}
+
+int main() {
+    int n;
+    printf("Введіть кількість клієнтів: ");
+    if (scanf("%d", &n) != 1) return 1;
+    getchar();
+
+    Client *directory = (Client *)malloc(n * sizeof(Client));
+    if (directory == NULL) return 1;
+
+    for (int i = 0; i < n; i++) {
+        printf("\nКлієнт %d\n", i + 1);
+        printf("ПІБ: ");
+        fgets(directory[i].name, 100, stdin);
+        directory[i].name[strcspn(directory[i].name, "\n")] = 0;
+
+        printf("Адреса: ");
+        fgets(directory[i].address, 100, stdin);
+        directory[i].address[strcspn(directory[i].address, "\n")] = 0;
+
+        printf("Телефон: ");
+        fgets(directory[i].phone, 20, stdin);
+        directory[i].phone[strcspn(directory[i].phone, "\n")] = 0;
+    }
+
+    qsort(directory, n, sizeof(Client), compare_clients);
+
+    printf("\nРезультат пошуку однакових адрес:\n");
+    int found_duplicates = 0;
+
+    for (int i = 0; i < n; ) {
+        int first = first_occurrence(directory, 0, n - 1, directory[i].address, n);
+        int last = last_occurrence(directory, 0, n - 1, directory[i].address, n);
+
+        int count = last - first + 1;
+
+        if (count > 1) {
+            printf("Адреса '%s' повторюється %d раз(и).\n", directory[i].address, count);
+            found_duplicates = 1;
+        }
+
+        i = last + 1; 
+    }
+
+    if (!found_duplicates) {
+        printf("Повторюваних адрес не знайдено.\n");
+    }
+
+    free(directory);
+
+    return 0;
+}
